@@ -101,7 +101,7 @@ def change_markdown_image(text: str):
 
 def gradio_launch(model_path: str, load_in_4bit: bool = True, MAX_TRY: int = 5):
     with gr.Blocks(theme=gr.themes.Monochrome()) as demo:
-        chatbot = gr.Chatbot(height=820, avatar_images="./assets/logo2.png")
+        chatbot = gr.Chatbot(height=820)
         msg = gr.Textbox()
         clear = gr.Button("Clear")
 
@@ -235,4 +235,4 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    gradio_launch(model_path=args.path, load_in_4bit=True)
+    gradio_launch(model_path=args.path, load_in_4bit=False)
