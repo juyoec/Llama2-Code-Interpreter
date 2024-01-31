@@ -12,6 +12,8 @@ from datetime import datetime
 from threading import Thread
 from typing import Optional
 from transformers import TextIteratorStreamer
+from llama2_wrapper import LLAMA2_WRAPPER
+from code_interpreter.LlamaCppCodeInterpreter import LlamaCppCodeInterpreter
 
 from utils.special_tok_llama2 import (
     B_CODE,
@@ -43,7 +45,7 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"
 from code_interpreter.LlamaCodeInterpreter import LlamaCodeInterpreter
 
 
-class StreamingLlamaCodeInterpreter(LlamaCodeInterpreter):
+class StreamingLlamaCodeInterpreter(LlamaCppCodeInterpreter):
     streamer: Optional[TextIteratorStreamer] = None
 
     # overwirte generate function
@@ -66,11 +68,11 @@ class StreamingLlamaCodeInterpreter(LlamaCodeInterpreter):
         )
 
         input_prompt = copy.deepcopy(prompt)
-        inputs = self.tokenizer([prompt], return_tensors="pt")
+        inputs = self.get_prompt(prompt, self.dialog)
         input_tokens_shape = inputs["input_ids"].shape[-1]
 
-        eos_token_id = self.tokenizer.convert_tokens_to_ids(DEFAULT_EOS_TOKEN)
-        e_code_token_id = self.tokenizer.convert_tokens_to_ids(E_CODE)
+        # eos_token_id = self.tokenizer.convert_tokens_to_ids(DEFAULT_EOS_TOKEN)
+        # e_code_token_id = self.tokenizer.convert_tokens_to_ids(E_CODE)
 
         kwargs = dict(
             **inputs,
@@ -81,10 +83,10 @@ class StreamingLlamaCodeInterpreter(LlamaCodeInterpreter):
             use_cache=use_cache,
             top_k=top_k,
             repetition_penalty=repetition_penalty,
-            eos_token_id=[
-                eos_token_id,
-                e_code_token_id,
-            ],  # Stop generation at either EOS or E_CODE token
+            # eos_token_id=[
+            #     eos_token_id,
+            #     e_code_token_id,
+            # ],  # Stop generation at either EOS or E_CODE token
             streamer=self.streamer,
         )
 
@@ -231,7 +233,7 @@ if __name__ == "__main__":
         type=str,
         required=True,
         help="Path to the finetuned LLAMA2 model.",
-        default="./output/llama-2-7b-codellama-ci",
+        default="/Users/user/Documents/etcProject/llama2-webui/models/codellama-7b.Q4_0.gguf",
     )
     args = parser.parse_args()
 
